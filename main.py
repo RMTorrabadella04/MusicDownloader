@@ -13,27 +13,38 @@ import tempfile
 import re
 import time
 from pathlib import Path
+from dotenv import load_dotenv
 import validators
+
+# Carga el .env desde la raíz del proyecto (antes de cualquier otra cosa)
+_ENV_FILE = Path(__file__).parent / ".env"
+load_dotenv(_ENV_FILE)
 
 # ══════════════════════════════════════════════════════════════════
 #  PAGE CONFIG  (must be the VERY FIRST Streamlit call)
 # ══════════════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="MusicDL",
-    page_icon=".images/icono.png",
+    page_icon="🎵",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
 
 # ══════════════════════════════════════════════════════════════════
-#  CONSTANTS
+#  CONSTANTS  —  rutas resueltas desde .env
 # ══════════════════════════════════════════════════════════════════
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT     = Path(__file__).parent
 FIRST_RUN_MARKER = PROJECT_ROOT / ".firstrun_done"
-IMAGES_DIR = PROJECT_ROOT / "images"
-IMAGES_DIR.mkdir(exist_ok=True)
-TEMP_DIR = PROJECT_ROOT / ".tmp_musicdl"
-TEMP_DIR.mkdir(exist_ok=True)
+
+# Directorios configurables via .env (con fallback si no están definidos)
+IMAGES_DIR = Path(os.getenv("IMAGES_DIR", str(PROJECT_ROOT / "images")))
+TEMP_DIR   = Path(os.getenv("TEMP_DIR",   str(PROJECT_ROOT / ".tmp_musicdl")))
+
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+TEMP_DIR.mkdir(parents=True, exist_ok=True)
+
+# Carpeta de salida por defecto (sobreescribible en la UI también)
+DEFAULT_OUTPUT_DIR = os.getenv("OUTPUT_DIR", str(Path.home() / "Music" / "MusicDL"))
 
 GENRE_LIST = [
     "Pop", "Rock", "Hip-Hop", "R&B / Soul", "Electronic / Dance",
@@ -323,7 +334,7 @@ def inject_css():
 def init_state():
     defaults = {
         # shared
-        "output_dir":       str(Path.home() / "Music" / "MusicDL"),
+        "output_dir":       DEFAULT_OUTPUT_DIR,
         "cover_path":       "",
         # album queue
         "album_queue":      [],         # list of dicts
@@ -360,6 +371,20 @@ def add_log(msg: str, level: str = "ok"):
 def sanitize_filename(name: str) -> str:
     """Remove characters illegal in filenames."""
     return re.sub(r'[<>:"/\\|?*]', "_", name).strip()
+
+
+def build_filename(artist: str, title: str) -> str:
+    """
+    Construye el nombre de archivo en el formato:
+      [ARTISTA] - [TITULO].mp3
+      [ARTISTA 1], [ARTISTA 2] - [TITULO].mp3
+
+    El campo 'artist' ya puede contener varios artistas separados por coma
+    (p.ej. "Bad Bunny, J Balvin") — se respeta tal cual, solo se sanea.
+    """
+    artist_safe = sanitize_filename(artist.strip()) if artist.strip() else "Desconocido"
+    title_safe  = sanitize_filename(title.strip())  if title.strip()  else "Sin titulo"
+    return f"{artist_safe} - {title_safe}.mp3"
 
 
 def validate_yt_url(url: str) -> tuple[bool, str]:
@@ -517,33 +542,72 @@ def trim_audio(input_path: str, output_path: str, start: float, end: float) -> t
 # ══════════════════════════════════════════════════════════════════
 #  HELPERS — SHORTCUT CREATION
 # ══════════════════════════════════════════════════════════════════
-def create_shortcut():
-    """Create a desktop shortcut / launcher script."""
-    desktop = Path.home() / "Desktop"
-    desktop.mkdir(exist_ok=True)
+def _get_icon_path() -> tuple[Path | None, Path | None]:
+    """
+    Devuelve (png_path, ico_path).
+    En Windows convierte el PNG a ICO usando Pillow si es necesario.
+    """
+    png = PROJECT_ROOT / "images" / "icono.png"
+    if not png.is_file():
+        return None, None
 
-    python = sys.executable
+    ico = PROJECT_ROOT / "images" / "icono.ico"
+    if not ico.is_file():
+        try:
+            from PIL import Image
+            img = Image.open(png)
+            # Genera el .ico con varios tamaños estándar
+            img.save(ico, format="ICO", sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+        except Exception:
+            ico = None   # Si falla, el .lnk se creará sin icono personalizado
+
+    return png, ico
+
+
+def create_shortcut():
+    """Crea un acceso directo en el Escritorio con el icono images/icono.png."""
+    # Intentar encontrar el Escritorio en español e inglés
+    desktop = None
+    for candidate in [
+        Path.home() / "Escritorio",
+        Path.home() / "Desktop",
+        Path.home() / "OneDrive" / "Escritorio",
+        Path.home() / "OneDrive" / "Desktop",
+    ]:
+        if candidate.is_dir():
+            desktop = candidate
+            break
+    if desktop is None:
+        desktop = Path.home() / "Desktop"
+        desktop.mkdir(exist_ok=True)
+
+    python   = sys.executable
     app_path = PROJECT_ROOT / "main.py"
-    system = platform.system()
+    system   = platform.system()
+    png_icon, ico_icon = _get_icon_path()
 
     try:
         if system == "Windows":
-            # Create a .bat launcher in project root
+            # ── Lanzador .bat ──────────────────────────────────
             bat_path = PROJECT_ROOT / "MusicDL.bat"
-            bat_content = f'@echo off\ntitle MusicDL\n"{python}" -m streamlit run "{app_path}" --server.headless false\npause\n'
-            bat_path.write_text(bat_content, encoding="utf-8")
+            bat_path.write_text(
+                f'@echo off\ntitle MusicDL\n\"{python}\" -m streamlit run \"{app_path}\" --server.headless false\npause\n',
+                encoding="utf-8",
+            )
 
-            # Try to create .lnk via VBScript
-            lnk_path = desktop / "MusicDL.lnk"
+            # ── Acceso directo .lnk con icono vía VBScript ─────
+            lnk_path  = desktop / "MusicDL.lnk"
+            icon_line = f'oLink.IconLocation = "{ico_icon}, 0"\n' if ico_icon and ico_icon.is_file() else ""
             vbs = tempfile.NamedTemporaryFile(suffix=".vbs", delete=False, mode="w", encoding="utf-8")
-            vbs.write(f"""
-Set oShell = CreateObject("WScript.Shell")
-Set oLink = oShell.CreateShortcut("{lnk_path}")
-oLink.TargetPath = "{bat_path}"
-oLink.WorkingDirectory = "{PROJECT_ROOT}"
-oLink.Description = "MusicDL — YouTube Music Downloader"
-oLink.Save
-""")
+            vbs.write(
+                f'Set oShell = CreateObject("WScript.Shell")\n'
+                f'Set oLink = oShell.CreateShortcut("{lnk_path}")\n'
+                f'oLink.TargetPath = "{bat_path}"\n'
+                f'oLink.WorkingDirectory = "{PROJECT_ROOT}"\n'
+                f'oLink.Description = "MusicDL — YouTube Music Downloader"\n'
+                f'{icon_line}'
+                f'oLink.Save\n'
+            )
             vbs.close()
             subprocess.run(["cscript", "//Nologo", vbs.name], capture_output=True)
             Path(vbs.name).unlink(missing_ok=True)
@@ -555,10 +619,14 @@ oLink.Save
                 encoding="utf-8",
             )
             sh_path.chmod(0o755)
+            icon_line = f"Icon={png_icon}\n" if png_icon else "Icon=audio-x-generic\n"
             desktop_entry = desktop / "MusicDL.desktop"
             desktop_entry.write_text(
                 f"[Desktop Entry]\nType=Application\nName=MusicDL\n"
-                f"Exec=bash -c '{sh_path}'\nTerminal=true\nCategories=Music;\n",
+                f"Comment=YouTube Music Downloader\n"
+                f"Exec=bash -c '{sh_path}'\n"
+                f"{icon_line}"
+                f"Terminal=true\nCategories=Music;AudioVideo;\n",
                 encoding="utf-8",
             )
             desktop_entry.chmod(0o755)
@@ -570,6 +638,13 @@ oLink.Save
                 encoding="utf-8",
             )
             sh_path.chmod(0o755)
+            # En macOS creamos un alias .command (doble-click lo abre en Terminal)
+            cmd_path = desktop / "MusicDL.command"
+            cmd_path.write_text(
+                f'#!/bin/bash\ncd "{PROJECT_ROOT}"\n"{python}" -m streamlit run "{app_path}"\n',
+                encoding="utf-8",
+            )
+            cmd_path.chmod(0o755)
 
         FIRST_RUN_MARKER.write_text("done")
         return True, system
@@ -814,8 +889,7 @@ def finalize_song():
         return
 
     out_dir  = ensure_output_dir(st.session_state.output_dir)
-    out_name = sanitize_filename(f"{meta['track']:0>2} - {meta['title']}") + ".mp3" \
-               if meta.get("track") else sanitize_filename(meta["title"]) + ".mp3"
+    out_name = build_filename(meta["artist"], meta["title"])
     out_path = str(out_dir / out_name)
 
     with st.spinner("Embebiendo metadatos…"):
@@ -1147,7 +1221,7 @@ def _download_album_queue():
             raw_mp3 = candidates[0]
 
         out_dir  = ensure_output_dir(st.session_state.output_dir)
-        out_name = sanitize_filename(f"{str(item['track']).zfill(2)} - {item['title']}") + ".mp3"
+        out_name = build_filename(item["artist"], item["title"])
         out_path = str(out_dir / out_name)
 
         embed_ok, embed_msg = embed_metadata(
