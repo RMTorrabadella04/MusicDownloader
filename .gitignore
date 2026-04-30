@@ -8,5 +8,10 @@ wheels/
 MusicDL.bat
 *.egg-info
 
+# Carpeta images
+
+images/
+!images/icono.png
+
 # Virtual environments
 .venv

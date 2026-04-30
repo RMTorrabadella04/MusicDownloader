@@ -685,7 +685,7 @@ def render_log():
 # ══════════════════════════════════════════════════════════════════
 #  UI — COVER PREVIEW COLUMN
 # ══════════════════════════════════════════════════════════════════
-def render_cover_panel():
+def render_cover_panel(prefix: str = ""):
     cover = st.session_state.cover_path
     cover_path = Path(cover) if cover else None
 
@@ -708,7 +708,7 @@ def render_cover_panel():
         "Ruta de la imagen (JPG / PNG)",
         value=st.session_state.cover_path,
         placeholder="C:/ruta/portada.jpg  o  ./images/cover.jpg",
-        key="cover_path_input",
+        key=f"{prefix}cover_path_input",
     )
     if cover_input != st.session_state.cover_path:
         st.session_state.cover_path = cover_input
@@ -717,7 +717,7 @@ def render_cover_panel():
     uploaded = st.file_uploader(
         "O sube la imagen aquí",
         type=["jpg", "jpeg", "png", "webp"],
-        key="cover_upload",
+        key=f"{prefix}cover_upload",
     )
     if uploaded:
         dest = IMAGES_DIR / uploaded.name
@@ -730,7 +730,7 @@ def render_cover_panel():
     out_dir = st.text_input(
         "Carpeta de salida",
         value=st.session_state.output_dir,
-        key="out_dir_input",
+        key=f"{prefix}out_dir_input",
     )
     if out_dir != st.session_state.output_dir:
         st.session_state.output_dir = out_dir
@@ -946,7 +946,7 @@ def render_single_tab():
     left, right = st.columns([3, 2], gap="large")
 
     with right:
-        render_cover_panel()
+        render_cover_panel(prefix="single_")
 
     with left:
         st.markdown('<div class="sec-label">URL de YouTube</div>', unsafe_allow_html=True)
@@ -1005,7 +1005,10 @@ def render_single_tab():
             if st.button("💾 Finalizar y Guardar", key="btn_finalize_single"):
                 finalize_song()
         else:
-            can_download = bool(url and title)
+            can_download = bool(
+                st.session_state.get("s_url", "").strip() and
+                st.session_state.get("s_title", "").strip()
+            )
             if not can_download:
                 st.markdown(
                     '<span class="pill pill-warn">Rellena al menos la URL y el Título</span>',
@@ -1022,7 +1025,7 @@ def render_single_tab():
                     "track":        st.session_state.get("s_track", 0),
                     "genre":        st.session_state.get("s_genre", ""),
                 }
-                process_song(meta, url, mode="single")
+                process_song(meta, st.session_state.get("s_url", ""), mode="single")
 
         # Log
         if st.session_state.download_log:
@@ -1037,7 +1040,7 @@ def render_album_tab():
     left, right = st.columns([3, 2], gap="large")
 
     with right:
-        render_cover_panel()
+        render_cover_panel(prefix="album_")
 
         # Album-level persistent fields in sidebar column
         st.markdown('<div class="sec-label">Datos del Álbum</div>', unsafe_allow_html=True)
@@ -1132,9 +1135,12 @@ def render_album_tab():
             if st.button("💾 Finalizar esta canción", key="btn_finalize_alb"):
                 finalize_song()
         else:
-            can_add = bool(url_alb and title_alb and
-                           st.session_state.album_title and
-                           st.session_state.album_artist)
+            can_add = bool(
+                st.session_state.get("alb_url", "").strip() and
+                st.session_state.get("alb_song_title", "").strip() and
+                st.session_state.get("alb_title_inp", "").strip() and
+                st.session_state.get("alb_artist_inp", "").strip()
+            )
 
             btn_col1, btn_col2 = st.columns(2)
             with btn_col1:
