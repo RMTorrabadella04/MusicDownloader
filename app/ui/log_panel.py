@@ -3,7 +3,7 @@ import streamlit as st
 # ══════════════════════════════════════════════════════════════════
 #  UI — LOG CONSOLE
 # ══════════════════════════════════════════════════════════════════
-def render_log():
+def render_log(prefix=""):
     if not st.session_state.download_log:
         return
     lines_html = ""
@@ -13,6 +13,7 @@ def render_log():
         safe_msg = msg.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         lines_html += f'<div class="{css_class}">[{ts}] {safe_msg}</div>\n'
     st.markdown(f'<div class="log-console">{lines_html}</div>', unsafe_allow_html=True)
-    if st.button("🗑 Limpiar log", key="clear_log"):
+    
+    if st.button("🗑 Limpiar log", key=f"{prefix}clear_log"):
         st.session_state.download_log = []
         st.rerun()

@@ -77,7 +77,7 @@ def render_album_tab():
         r1c1, r1c2 = st.columns(2)
         with r1c1:
             title_alb = st.text_input("Título de la canción", key="alb_song_title",
-                                      placeholder="Nombre del tema")
+                                    placeholder="Nombre del tema")
         with r1c2:
             artist_alb = st.text_input(
                 "Artista / Colaboradores (deja en blanco si solo el principal)",
@@ -121,7 +121,7 @@ def render_album_tab():
             btn_col1, btn_col2 = st.columns(2)
             with btn_col1:
                 if st.button("➕ Añadir a la Cola", key="btn_add_queue",
-                             disabled=not can_add):
+                            disabled=not can_add):
                     valid, vmsg = validate_yt_url(url_alb)
                     if valid:
                         st.session_state.album_queue.append({
@@ -145,7 +145,7 @@ def render_album_tab():
 
             with btn_col2:
                 if st.button("⬇ Descargar esta canción", key="btn_dl_one",
-                             disabled=not can_add):
+                            disabled=not can_add):
                     valid, vmsg = validate_yt_url(url_alb)
                     if valid:
                         meta = {
@@ -170,7 +170,7 @@ def render_album_tab():
         # Log
         if st.session_state.download_log:
             st.markdown('<div class="sec-label">Log</div>', unsafe_allow_html=True)
-            render_log()
+            render_log(prefix="album_")
 
 def _download_album_queue():
     """Download and process all songs in the album queue sequentially."""

@@ -5,6 +5,14 @@ from app.config import IMAGES_DIR
 # ══════════════════════════════════════════════════════════════════
 #  UI — COVER PREVIEW COLUMN
 # ══════════════════════════════════════════════════════════════════
+
+def ensure_output_dir(path: str) -> Path:
+    # Solo quitamos comillas accidentales de los extremos, nada de magia negra
+    clean_path = str(path).strip(' "\'')
+    p = Path(clean_path)
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
 def render_cover_panel(prefix: str = ""):
     cover = st.session_state.cover_path
     cover_path = Path(cover) if cover else None
@@ -47,10 +55,12 @@ def render_cover_panel(prefix: str = ""):
 
     # Output folder
     st.markdown('<div class="sec-label">Destino</div>', unsafe_allow_html=True)
+    output_dir = ensure_output_dir(st.session_state.output_dir)  # Aseguramos que la carpeta exista
     out_dir = st.text_input(
         "Carpeta de salida",
-        value=st.session_state.output_dir,
+        value=output_dir,
         key=f"{prefix}out_dir_input",
     )
     if out_dir != st.session_state.output_dir:
         st.session_state.output_dir = out_dir
+

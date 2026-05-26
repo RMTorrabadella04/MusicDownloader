@@ -106,7 +106,7 @@ def finalize_song():
     if mode == "single":
         # Clear all single-song fields
         for k in ["s_url", "s_title", "s_artist", "s_album_artist",
-                  "s_album", "s_year", "s_track", "s_genre"]:
+                "s_album", "s_year", "s_track", "s_genre"]:
             if k in st.session_state:
                 del st.session_state[k]
         st.info("Campos limpiados para la siguiente canción.")
@@ -143,20 +143,20 @@ def render_single_tab():
             title = st.text_input("Título de la canción", key="s_title", placeholder="Nombre del tema")
         with r1c2:
             artist = st.text_input("Artista / Colaboradores", key="s_artist",
-                                   placeholder="Artista Feat. Otro")
+                                    placeholder="Artista Feat. Otro")
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
             album_artist = st.text_input("Artista principal del álbum", key="s_album_artist",
-                                         placeholder="Artista Principal")
+                                        placeholder="Artista Principal")
         with r2c2:
             album = st.text_input("Nombre del álbum", key="s_album",
-                                  placeholder="Nombre del álbum")
+                                    placeholder="Nombre del álbum")
 
         r3c1, r3c2, r3c3 = st.columns([1, 1, 2])
         with r3c1:
             year = st.text_input("Año", key="s_year",
-                                 value=str(time.localtime().tm_year))
+                                value=str(time.localtime().tm_year))
         with r3c2:
             track = st.number_input("Nº Pista", key="s_track",
                                     min_value=0, max_value=999, value=1, step=1)
@@ -189,7 +189,7 @@ def render_single_tab():
                     unsafe_allow_html=True,
                 )
             if st.button("⬇ Descargar y Procesar", key="btn_dl_single",
-                         disabled=not can_download):
+                        disabled=not can_download):
                 meta = {
                     "title":        st.session_state.get("s_title", ""),
                     "artist":       st.session_state.get("s_artist", ""),
@@ -204,4 +204,4 @@ def render_single_tab():
         # Log
         if st.session_state.download_log:
             st.markdown('<div class="sec-label">Log</div>', unsafe_allow_html=True)
-            render_log()
+            render_log(prefix="single_")
