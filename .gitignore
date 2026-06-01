@@ -10,9 +10,14 @@ MusicDL.bat
 notas.txt
 .firstrun_done
 
+temp/*
+!temp/.gitkeep
+
 # Carpeta images
 
-images/
+images/temp/*
+!images/temp/.gitkeep
+
 !images/icono.ico
 !images/icono.png
 
