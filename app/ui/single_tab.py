@@ -6,7 +6,7 @@ from app.config import TEMP_DIR, GENRE_LIST
 from app.utils import validate_yt_url, sanitize_filename, build_filename, ensure_output_dir, get_audio_duration
 from app.audio import download_audio, embed_metadata
 from app.ui.log_panel import render_log
-from app.ui.cover_panel import render_cover_panel
+from app.ui.cover_panel import render_cover_panel, cleanup_cover_temp
 from app.ui.trim_panel import render_trim_section
 
 # ══════════════════════════════════════════════════════════════════
@@ -110,7 +110,9 @@ def finalize_song():
             if k in st.session_state:
                 del st.session_state[k]
         st.info("Campos limpiados para la siguiente canción.")
-
+    
+    cleanup_cover_temp()
+    
     st.rerun()
 
 # ══════════════════════════════════════════════════════════════════

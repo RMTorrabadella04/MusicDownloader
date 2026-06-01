@@ -14,6 +14,7 @@ st.set_page_config(
 from app.state import init_state
 from app.styles import inject_css
 from app.shortcut import check_first_run
+from app.ui.cover_panel import cleanup_cover_temp
 from app.ui.single_tab import render_single_tab
 from app.ui.album_tab import render_album_tab
 
@@ -25,6 +26,9 @@ def main():
     init_state()
     check_first_run()
 
+    # Limpia las portadas temporales cada vez que arranca la app
+    cleanup_cover_temp()
+    
     # ── Header ──────────────────────────────────────────
     st.markdown(
         '<div class="app-header">'

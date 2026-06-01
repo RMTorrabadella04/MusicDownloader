@@ -7,21 +7,61 @@ from app.config import IMAGES_DIR
 # ══════════════════════════════════════════════════════════════════
 
 def ensure_output_dir(path: str) -> Path:
-    # Solo quitamos comillas accidentales de los extremos, nada de magia negra
     clean_path = str(path).strip(' "\'')
     p = Path(clean_path)
     p.mkdir(parents=True, exist_ok=True)
     return p
 
+def cleanup_cover_temp() -> None:
+    """Borra todo el contenido de images/temp."""
+    temp_dir = IMAGES_DIR 
+    for f in temp_dir.iterdir():
+        if f.is_file():
+            try:
+                f.unlink()
+            except Exception:
+                pass
+
+
 def render_cover_panel(prefix: str = ""):
-    cover = st.session_state.cover_path
+    input_key  = f"{prefix}cover_path_input"
+    upload_key = f"{prefix}cover_upload"
+    outdir_key = f"{prefix}out_dir_input"
+
+    # ── PASO 1: procesar el archivo subido ANTES de dibujar ningún widget ──
+    # En Streamlit, el valor del file_uploader del ciclo anterior sigue
+    # disponible en session_state al inicio del nuevo ciclo, antes de que
+    # se instancie ningún widget. Es el único momento en que podemos
+    # actualizar input_key sin que Streamlit se queje.
+    uploaded_file = st.session_state.get(upload_key)
+    if uploaded_file is not None:
+        dest = IMAGES_DIR / uploaded_file.name
+        dest.write_bytes(uploaded_file.getbuffer())
+        st.session_state.cover_path = str(dest)
+        st.session_state[input_key] = str(dest)   # seguro: widget aún no instanciado
+
+    # ── PASO 2: inicializar claves la primera vez ───────────────────────────
+    if input_key not in st.session_state:
+        st.session_state[input_key] = st.session_state.cover_path
+    if outdir_key not in st.session_state:
+        st.session_state[outdir_key] = st.session_state.output_dir
+
+    # ── PASO 3: callbacks de sincronización ────────────────────────────────
+    def _sync_cover():
+        st.session_state.cover_path = st.session_state[input_key]
+
+    def _sync_outdir():
+        st.session_state.output_dir = st.session_state[outdir_key]
+
+    # ── PASO 4: dibujar widgets ────────────────────────────────────────────
+    cover      = st.session_state.cover_path
     cover_path = Path(cover) if cover else None
 
     if cover_path and cover_path.is_file() and cover_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}:
         st.image(str(cover_path), use_container_width=True)
         st.markdown(
-            f'<div style="text-align:center; margin-top:0.4rem;">'
-            f'<span class="pill pill-ok">✓ Portada cargada</span></div>',
+            '<div style="text-align:center; margin-top:0.4rem;">'
+            '<span class="pill pill-ok">✓ Portada cargada</span></div>',
             unsafe_allow_html=True,
         )
     else:
@@ -32,35 +72,23 @@ def render_cover_panel(prefix: str = ""):
         )
 
     st.markdown('<div class="sec-label">Portada</div>', unsafe_allow_html=True)
-    cover_input = st.text_input(
+    st.text_input(
         "Ruta de la imagen (JPG / PNG)",
-        value=st.session_state.cover_path,
-        placeholder="C:/ruta/portada.jpg  o  ./images/cover.jpg",
-        key=f"{prefix}cover_path_input",
+        placeholder="C:/ruta/portada.jpg  o  ./images/temp/cover.jpg",
+        key=input_key,
+        on_change=_sync_cover,
     )
-    if cover_input != st.session_state.cover_path:
-        st.session_state.cover_path = cover_input
-        st.rerun()
 
-    uploaded = st.file_uploader(
+    st.file_uploader(
         "O sube la imagen aquí",
         type=["jpg", "jpeg", "png", "webp"],
-        key=f"{prefix}cover_upload",
+        key=upload_key,
     )
-    if uploaded:
-        dest = IMAGES_DIR / uploaded.name
-        dest.write_bytes(uploaded.getbuffer())
-        st.session_state.cover_path = str(dest)
-        st.rerun()
 
-    # Output folder
     st.markdown('<div class="sec-label">Destino</div>', unsafe_allow_html=True)
-    output_dir = ensure_output_dir(st.session_state.output_dir)  # Aseguramos que la carpeta exista
-    out_dir = st.text_input(
+    ensure_output_dir(st.session_state.output_dir)
+    st.text_input(
         "Carpeta de salida",
-        value=output_dir,
-        key=f"{prefix}out_dir_input",
+        key=outdir_key,
+        on_change=_sync_outdir,
     )
-    if out_dir != st.session_state.output_dir:
-        st.session_state.output_dir = out_dir
-
