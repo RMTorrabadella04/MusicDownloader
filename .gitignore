@@ -10,12 +10,9 @@ MusicDL.bat
 notas.txt
 .firstrun_done
 
-# Carpeta de archivos temporales
-temp/
 # Carpeta images
 
 images/
-!images/temp/
 !images/icono.ico
 !images/icono.png
 
