@@ -89,12 +89,12 @@ def finalize_song():
     st.balloons()
 
     # Cleanup temp files
-    for p in [st.session_state.last_raw_mp3, st.session_state.last_trimmed_mp3]:
-        if p and Path(p).is_file() and Path(p).parent == TEMP_DIR:
-            try:
-                Path(p).unlink()
-            except Exception:
-                pass
+    temp_dir = TEMP_DIR 
+    for f in temp_dir.iterdir():
+        try:
+            Path(f).unlink()
+        except Exception:
+            pass
 
     # Reset state based on mode
     st.session_state.last_raw_mp3     = None

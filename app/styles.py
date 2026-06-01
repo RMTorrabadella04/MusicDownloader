@@ -1,7 +1,7 @@
 import streamlit as st
 
 # ══════════════════════════════════════════════════════════════════
-#  CSS — DARK VINYL AESTHETIC
+#  CSS — DARK MUSIC DOWNLOADER AESTHETIC
 # ══════════════════════════════════════════════════════════════════
 def inject_css():
     st.markdown("""
@@ -9,21 +9,24 @@ def inject_css():
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap');
 
     :root {
-        --bg:          #080808;
-        --surface:     #111111;
-        --surface2:    #181818;
-        --surface3:    #202020;
-        --gold:        #c9a84c;
-        --gold-light:  #e8c86a;
-        --gold-dim:    #7a6530;
-        --gold-glow:   rgba(201,168,76,0.12);
-        --text:        #ddd6c8;
-        --text-dim:    #5e5850;
-        --groove:      #1e1e1e;
-        --success:     #4caf87;
-        --error:       #c0392b;
-        --warn:        #e67e22;
-        --radius:      3px;
+        --bg:          #07080f;
+        --surface:     #0e1020;
+        --surface2:    #151829;
+        --surface3:    #1c2035;
+        --purple:      #7C3AED;
+        --blue:        #2563EB;
+        --cyan:        #06B6D4;
+        --accent:      #6D28D9;
+        --accent-light:#8B5CF6;
+        --accent-glow: rgba(109,40,217,0.18);
+        --grad:        linear-gradient(135deg, #7C3AED 0%, #2563EB 60%, #06B6D4 100%);
+        --text:        #e2e8f8;
+        --text-dim:    #4a5280;
+        --groove:      #1a1d30;
+        --success:     #10b981;
+        --error:       #ef4444;
+        --warn:        #f59e0b;
+        --radius:      4px;
     }
 
     /* ── Base ── */
@@ -33,7 +36,7 @@ def inject_css():
     h1,h2,h3,h4 {
         font-family: 'Bebas Neue', sans-serif !important;
         letter-spacing: 3px !important;
-        color: var(--gold) !important;
+        color: var(--accent-light) !important;
     }
     hr { border-color: var(--groove) !important; margin: 1.5rem 0 !important; }
 
@@ -48,8 +51,11 @@ def inject_css():
         font-family: 'Bebas Neue', sans-serif;
         font-size: 5rem;
         letter-spacing: 14px;
-        color: var(--gold);
-        text-shadow: 0 0 60px var(--gold-glow), 0 0 120px var(--gold-glow);
+        background: var(--grad);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 40px rgba(109,40,217,0.4));
         margin: 0; line-height: 1;
     }
     .app-subtitle {
@@ -66,8 +72,11 @@ def inject_css():
         font-family: 'Bebas Neue', sans-serif;
         font-size: 1.25rem;
         letter-spacing: 5px;
-        color: var(--gold);
-        border-left: 3px solid var(--gold);
+        background: var(--grad);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        border-left: 3px solid var(--purple);
         padding-left: 0.7rem;
         margin: 1.4rem 0 0.6rem;
         text-transform: uppercase;
@@ -110,16 +119,16 @@ def inject_css():
     .q-item {
         display: flex; align-items: baseline; gap: 0.6rem;
         background: var(--surface2);
-        border-left: 3px solid var(--gold-dim);
+        border-left: 3px solid var(--accent);
         border-radius: 0 2px 2px 0;
         padding: 0.5rem 0.8rem;
         margin-bottom: 0.35rem;
         transition: border-color 0.2s;
     }
-    .q-item:hover { border-left-color: var(--gold); }
+    .q-item:hover { border-left-color: var(--cyan); }
     .q-num {
         font-family: 'Bebas Neue', sans-serif;
-        color: var(--gold); font-size: 1rem;
+        color: var(--accent-light); font-size: 1rem;
         letter-spacing: 2px; min-width: 2ch;
     }
     .q-title { color: var(--text); font-size: 0.9rem; font-weight: 500; }
@@ -127,13 +136,13 @@ def inject_css():
 
     /* ── Log console ── */
     .log-console {
-        background: #050505;
-        border: 1px solid #1a1a1a;
+        background: #050508;
+        border: 1px solid #1a1d30;
         border-radius: var(--radius);
         padding: 1rem 1.2rem;
         font-family: 'JetBrains Mono', 'Courier New', monospace;
         font-size: 0.78rem;
-        color: #6bff6b;
+        color: #6bffea;
         max-height: 220px;
         overflow-y: auto;
         white-space: pre-wrap;
@@ -141,15 +150,15 @@ def inject_css():
         line-height: 1.6;
     }
     .log-line-err  { color: #ff6b6b; }
-    .log-line-info { color: #6bc8ff; }
-    .log-line-ok   { color: #6bff6b; }
-    .log-line-warn { color: #ffa84c; }
+    .log-line-info { color: #6bb3ff; }
+    .log-line-ok   { color: #6bffea; }
+    .log-line-warn { color: #fbbf24; }
 
     /* ── Trim section ── */
     .trim-section {
         background: var(--surface);
         border: 1px solid var(--groove);
-        border-top: 3px solid var(--gold-dim);
+        border-top: 3px solid var(--accent);
         border-radius: var(--radius);
         padding: 1.2rem 1.4rem;
         margin-top: 1rem;
@@ -165,10 +174,10 @@ def inject_css():
         font-weight: 500;
         letter-spacing: 1px;
     }
-    .pill-ok   { background: rgba(76,175,135,0.15); color: var(--success); border: 1px solid rgba(76,175,135,0.3); }
-    .pill-err  { background: rgba(192,57,43,0.15);  color: var(--error);   border: 1px solid rgba(192,57,43,0.3); }
-    .pill-warn { background: rgba(230,126,34,0.15); color: var(--warn);    border: 1px solid rgba(230,126,34,0.3); }
-    .pill-info { background: rgba(201,168,76,0.1);  color: var(--gold);    border: 1px solid rgba(201,168,76,0.25); }
+    .pill-ok   { background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+    .pill-err  { background: rgba(239,68,68,0.12);  color: var(--error);   border: 1px solid rgba(239,68,68,0.3); }
+    .pill-warn { background: rgba(245,158,11,0.12); color: var(--warn);    border: 1px solid rgba(245,158,11,0.3); }
+    .pill-info { background: rgba(109,40,217,0.12); color: var(--accent-light); border: 1px solid rgba(109,40,217,0.3); }
 
     /* ── Streamlit widget overrides ── */
     .stTextInput  > label,
@@ -187,25 +196,25 @@ def inject_css():
     .stNumberInput > div > div > input {
         background: var(--surface2) !important;
         color: var(--text) !important;
-        border: 1px solid #252525 !important;
+        border: 1px solid #1c2035 !important;
         border-radius: var(--radius) !important;
         font-family: 'DM Sans', sans-serif !important;
     }
     .stTextInput > div > div > input:focus,
     .stNumberInput > div > div > input:focus {
-        border-color: var(--gold-dim) !important;
-        box-shadow: 0 0 0 1px var(--gold-glow) !important;
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 1px var(--accent-glow) !important;
     }
     .stTextArea > div > textarea {
         background: var(--surface2) !important;
         color: var(--text) !important;
-        border: 1px solid #252525 !important;
+        border: 1px solid #1c2035 !important;
         border-radius: var(--radius) !important;
         font-family: 'DM Sans', sans-serif !important;
     }
     div[data-baseweb="select"] > div {
         background: var(--surface2) !important;
-        border-color: #252525 !important;
+        border-color: #1c2035 !important;
         border-radius: var(--radius) !important;
         color: var(--text) !important;
     }
@@ -215,11 +224,11 @@ def inject_css():
     }
     div[data-baseweb="select"] li:hover {
         background: var(--surface2) !important;
-        color: var(--gold) !important;
+        color: var(--accent-light) !important;
     }
     .stButton > button {
-        background: var(--gold) !important;
-        color: #080808 !important;
+        background: var(--grad) !important;
+        color: #ffffff !important;
         border: none !important;
         border-radius: var(--radius) !important;
         font-family: 'Bebas Neue', sans-serif !important;
@@ -230,8 +239,8 @@ def inject_css():
         transition: all 0.15s ease !important;
     }
     .stButton > button:hover {
-        background: var(--gold-light) !important;
-        box-shadow: 0 4px 24px var(--gold-glow) !important;
+        filter: brightness(1.15) !important;
+        box-shadow: 0 4px 24px var(--accent-glow) !important;
         transform: translateY(-1px) !important;
     }
     .stButton > button:active { transform: translateY(0) !important; }
@@ -242,27 +251,27 @@ def inject_css():
         font-size: 1.1rem !important;
     }
     div[data-testid="stTabs"] button[aria-selected="true"] {
-        color: var(--gold) !important;
+        color: var(--accent-light) !important;
     }
     div[data-testid="stTabs"] button[aria-selected="true"]::after {
-        background: var(--gold) !important;
+        background: var(--grad) !important;
     }
-    .stProgress > div > div > div { background: var(--gold) !important; }
+    .stProgress > div > div > div { background: var(--grad) !important; }
     .stAlert { border-radius: var(--radius) !important; }
     div[data-testid="stFileUploader"] {
         background: var(--surface2) !important;
-        border: 1px dashed #2a2a2a !important;
+        border: 1px dashed #1c2035 !important;
         border-radius: var(--radius) !important;
     }
     div[data-testid="stFileUploader"]:hover {
-        border-color: var(--gold-dim) !important;
+        border-color: var(--accent) !important;
     }
-    .stSpinner > div { border-top-color: var(--gold) !important; }
+    .stSpinner > div { border-top-color: var(--cyan) !important; }
     .stCheckbox > label > span { color: var(--text) !important; }
-    div[data-baseweb="checkbox"] > div { border-color: var(--gold-dim) !important; }
+    div[data-baseweb="checkbox"] > div { border-color: var(--accent) !important; }
     div[data-baseweb="checkbox"][aria-checked="true"] > div {
-        background: var(--gold) !important;
-        border-color: var(--gold) !important;
+        background: var(--accent) !important;
+        border-color: var(--accent) !important;
     }
     .stRadio > label > div { color: var(--text) !important; }
 
